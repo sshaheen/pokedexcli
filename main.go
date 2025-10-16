@@ -11,8 +11,9 @@ import (
 )
 
 func main() {
+	const baseURL = "https://pokeapi.co/api/v2/location-area"
 	scanner := bufio.NewScanner(os.Stdin)
-	c := &models.Config{}
+	config := &models.Config{Next: baseURL, Previous: ""}
 
 	command_map := map[string]models.CliCommand{
 		"exit": {
@@ -37,10 +38,19 @@ func main() {
 		scanner.Scan()
 		input_text := scanner.Text()
 		cleaned_input := cleanInput(input_text)
-		command := cleaned_input[0]
-		c_str, ok := command_map[command]
+		command_str := cleaned_input[0]
+		if command_str == "mapb" {
+			if config.Previous == "" {
+				fmt.Println("you're on the first page")
+				continue
+			} else {
+				config.Next, config.Previous = config.Previous, config.Next
+				command_str = "map"
+			}
+		}
+		command, ok := command_map[command_str]
 		if ok {
-			c_str.Callback(c)
+			command.Callback(config)
 		} else {
 			fmt.Println("Unknown command")
 		}

@@ -10,7 +10,7 @@ import (
 )
 
 func CommandMap(c *models.Config) error {
-	res, err := http.Get("https://pokeapi.co/api/v2/location-area")
+	res, err := http.Get(c.Next)
 
 	if err != nil {
 		return err
@@ -31,6 +31,17 @@ func CommandMap(c *models.Config) error {
 	if err != nil {
 		return err
 	}
+
+	var config models.Config
+
+	err = json.Unmarshal(body, &config)
+
+	if err != nil {
+		return err
+	}
+
+	c.Next = config.Next
+	c.Previous = config.Previous
 
 	for _, item := range map_data.Results {
 		fmt.Printf("%s\n", item.Name)
