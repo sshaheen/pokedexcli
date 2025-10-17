@@ -5,17 +5,24 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/sshaheen/pokedexcli/internal/app"
 	"github.com/sshaheen/pokedexcli/internal/commands"
 	"github.com/sshaheen/pokedexcli/internal/models"
+	"github.com/sshaheen/pokedexcli/internal/pokeapi"
+	"github.com/sshaheen/pokedexcli/internal/pokecache"
 )
 
 func main() {
 	const baseURL = "https://pokeapi.co/api/v2/location-area"
 	scanner := bufio.NewScanner(os.Stdin)
 	config := &models.Config{Next: baseURL, Previous: ""}
+	cache := pokecache.NewCache(5 * time.Second)
+	client := pokeapi.NewClient(cache)
+	state := &app.AppState{Config: config, Client: client}
 
-	command_map := map[string]models.CliCommand{
+	command_map := map[string]commands.CliCommand{
 		"exit": {
 			Name:        "exit",
 			Description: "Exit the Pokedex",
@@ -50,7 +57,7 @@ func main() {
 		}
 		command, ok := command_map[command_str]
 		if ok {
-			command.Callback(config)
+			command.Callback(state)
 		} else {
 			fmt.Println("Unknown command")
 		}

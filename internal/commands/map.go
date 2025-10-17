@@ -1,49 +1,22 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
-	"github.com/sshaheen/pokedexcli/internal/models"
+	"github.com/sshaheen/pokedexcli/internal/app"
 )
 
-func CommandMap(c *models.Config) error {
-	res, err := http.Get(c.Next)
+func CommandMap(state *app.AppState) error {
+	data, config, err := state.Client.Fetch(state.Config.Next)
 
 	if err != nil {
 		return err
 	}
 
-	body, err := io.ReadAll(res.Body)
+	state.Config.Next = config.Next
+	state.Config.Previous = config.Previous
 
-	if err != nil {
-		return err
-	}
-
-	res.Body.Close()
-
-	var map_data models.MapData
-
-	err = json.Unmarshal(body, &map_data)
-
-	if err != nil {
-		return err
-	}
-
-	var config models.Config
-
-	err = json.Unmarshal(body, &config)
-
-	if err != nil {
-		return err
-	}
-
-	c.Next = config.Next
-	c.Previous = config.Previous
-
-	for _, item := range map_data.Results {
+	for _, item := range data.Results {
 		fmt.Printf("%s\n", item.Name)
 	}
 
