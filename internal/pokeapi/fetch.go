@@ -4,34 +4,25 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	"github.com/sshaheen/pokedexcli/internal/models"
 )
 
-func (c *Client) Fetch(url string) (models.MapData, models.Config, error) {
+func Fetch[T any](c *Client, url string) (T, error) {
+	var zero T
 	if raw_data, ok := c.cache.Get(url); ok {
-		var map_data models.MapData
+		var value_data T
 
-		err := json.Unmarshal(raw_data, &map_data)
+		err := json.Unmarshal(raw_data, &value_data)
 		if err != nil {
-			return models.MapData{}, models.Config{}, err
+			return zero, err
 		}
 
-		var config models.Config
-
-		err = json.Unmarshal(raw_data, &config)
-
-		if err != nil {
-			return models.MapData{}, models.Config{}, err
-		}
-
-		return map_data, config, nil
+		return value_data, nil
 	}
 
 	res, err := http.Get(url)
 
 	if err != nil {
-		return models.MapData{}, models.Config{}, err
+		return zero, err
 	}
 
 	body, err := io.ReadAll(res.Body)
@@ -39,26 +30,18 @@ func (c *Client) Fetch(url string) (models.MapData, models.Config, error) {
 	c.cache.Add(url, body)
 
 	if err != nil {
-		return models.MapData{}, models.Config{}, err
+		return zero, err
 	}
 
 	res.Body.Close()
 
-	var map_data models.MapData
+	var value_data T
 
-	err = json.Unmarshal(body, &map_data)
-
-	if err != nil {
-		return models.MapData{}, models.Config{}, err
-	}
-
-	var config models.Config
-
-	err = json.Unmarshal(body, &config)
+	err = json.Unmarshal(body, &value_data)
 
 	if err != nil {
-		return models.MapData{}, models.Config{}, err
+		return zero, err
 	}
 
-	return map_data, config, nil
+	return value_data, nil
 }

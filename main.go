@@ -38,6 +38,11 @@ func main() {
 			Description: "Provide list of next 20 locations in Pokemon world",
 			Callback:    commands.CommandMap,
 		},
+		"explore": {
+			Name:        "explore",
+			Description: "List Pokemon in area",
+			Callback:    commands.CommandExplore,
+		},
 	}
 
 	for {
@@ -45,21 +50,34 @@ func main() {
 		scanner.Scan()
 		input_text := scanner.Text()
 		cleaned_input := cleanInput(input_text)
-		command_str := cleaned_input[0]
-		if command_str == "mapb" {
-			if config.Previous == "" {
-				fmt.Println("you're on the first page")
-				continue
+		if len(cleaned_input) == 2 {
+			command_str := cleaned_input[0]
+			area := cleaned_input[1]
+			command, ok := command_map[command_str]
+			if ok {
+				state.Config.Next = fmt.Sprintf("%s/%s", baseURL, area)
+				fmt.Printf("Exploring %s..\n", area)
+				command.Callback(state)
 			} else {
-				config.Next, config.Previous = config.Previous, config.Next
-				command_str = "map"
+				fmt.Println("Unknown command")
 			}
-		}
-		command, ok := command_map[command_str]
-		if ok {
-			command.Callback(state)
 		} else {
-			fmt.Println("Unknown command")
+			command_str := cleaned_input[0]
+			if command_str == "mapb" {
+				if config.Previous == "" {
+					fmt.Println("you're on the first page")
+					continue
+				} else {
+					config.Next, config.Previous = config.Previous, config.Next
+					command_str = "map"
+				}
+			}
+			command, ok := command_map[command_str]
+			if ok {
+				command.Callback(state)
+			} else {
+				fmt.Println("Unknown command")
+			}
 		}
 	}
 }
