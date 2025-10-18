@@ -62,6 +62,8 @@ func main() {
 		},
 	}
 
+	defer cache.Close()
+
 	for {
 		fmt.Printf("Pokedex > ")
 		scanner.Scan()
