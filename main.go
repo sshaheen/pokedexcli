@@ -16,11 +16,13 @@ import (
 
 func main() {
 	const baseURL = "https://pokeapi.co/api/v2/location-area"
+	const pokemonURL = "https://pokeapi.co/api/v2/pokemon"
 	scanner := bufio.NewScanner(os.Stdin)
 	config := &models.Config{Next: baseURL, Previous: ""}
 	cache := pokecache.NewCache(5 * time.Second)
 	client := pokeapi.NewClient(cache)
-	state := &app.AppState{Config: config, Client: client}
+	pokedex := make(map[string]models.Pokemon)
+	state := &app.AppState{Config: config, Client: client, Pokedex: pokedex}
 
 	command_map := map[string]commands.CliCommand{
 		"exit": {
@@ -43,6 +45,16 @@ func main() {
 			Description: "List Pokemon in area",
 			Callback:    commands.CommandExplore,
 		},
+		"catch": {
+			Name:        "catch",
+			Description: "Try to catch a Pokemon",
+			Callback:    commands.CommandCatch,
+		},
+		"inspect": {
+			Name:        "inspect",
+			Description: "Get details on Pokemon in Pokedex",
+			Callback:    commands.CommandInspect,
+		},
 	}
 
 	for {
@@ -52,14 +64,35 @@ func main() {
 		cleaned_input := cleanInput(input_text)
 		if len(cleaned_input) == 2 {
 			command_str := cleaned_input[0]
-			area := cleaned_input[1]
-			command, ok := command_map[command_str]
-			if ok {
-				state.Config.Next = fmt.Sprintf("%s/%s", baseURL, area)
-				fmt.Printf("Exploring %s..\n", area)
-				command.Callback(state)
-			} else {
-				fmt.Println("Unknown command")
+			switch command_str {
+			case "explore":
+				area := cleaned_input[1]
+				command, ok := command_map[command_str]
+				if ok {
+					state.Config.Next = fmt.Sprintf("%s/%s", baseURL, area)
+					command.Callback(state)
+				} else {
+					fmt.Println("Unknown command")
+				}
+			case "catch":
+				pokemon := cleaned_input[1]
+				command, ok := command_map[command_str]
+				if ok {
+					state.Config.Next = fmt.Sprintf("%s/%s", pokemonURL, pokemon)
+					state.TargetPokemon = pokemon
+					command.Callback(state)
+				} else {
+					fmt.Println("Unknown command")
+				}
+			case "inspect":
+				pokemon := cleaned_input[1]
+				command, ok := command_map[command_str]
+				if ok {
+					state.TargetPokemon = pokemon
+					command.Callback(state)
+				} else {
+					fmt.Printf("Unknown command")
+				}
 			}
 		} else {
 			command_str := cleaned_input[0]

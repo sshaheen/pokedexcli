@@ -15,6 +15,8 @@ func CommandExplore(state *app.AppState) error {
 		return err
 	}
 
+	fmt.Printf("Exploring %s...\n", data.Name)
+
 	for _, item := range data.PokemonEncounters {
 		fmt.Println(item.Pokemon.Name)
 	}

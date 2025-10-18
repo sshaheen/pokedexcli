@@ -6,6 +6,8 @@ import (
 )
 
 type AppState struct {
-	Config *models.Config
-	Client *pokeapi.Client
+	Config        *models.Config
+	Client        *pokeapi.Client
+	Pokedex       map[string]models.Pokemon
+	TargetPokemon string
 }
