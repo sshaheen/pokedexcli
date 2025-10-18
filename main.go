@@ -55,6 +55,11 @@ func main() {
 			Description: "Get details on Pokemon in Pokedex",
 			Callback:    commands.CommandInspect,
 		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "Print names of all Pokemon in Pokedex",
+			Callback:    commands.CommandPokedex,
+		},
 	}
 
 	for {
